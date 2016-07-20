@@ -1,0 +1,8 @@
+*.agdai
+*.prof
+*.treeless
+*.hi
+*.o
+*.agda#
+*.agda~
+.#*.agda
