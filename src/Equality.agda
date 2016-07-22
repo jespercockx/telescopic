@@ -2,15 +2,15 @@
 
 module Equality where
 
+open import Base
 open import Telescope
 
-open import Relation.Binary.PropositionalEquality using () renaming
+open import Prelude.Equality using () renaming
   (_≡_ to _≡₁_;
    refl to refl₁;
-   _≢_ to _≢₁_;
    sym to sym₁;
    trans to trans₁;
-   subst to subst₁;
+   transport to subst₁;
    cong to cong₁)
   public
 

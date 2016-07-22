@@ -2,13 +2,8 @@
 
 module Telescope where
 
-open import Agda.Primitive public
-open import Data.Nat using (ℕ; zero; suc; _+_) public
-open import Data.Product using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂) public
-open import Data.List using (List; []; _∷_; _++_) public
+open import Base
 
-record · {a} : Set a where
-  constructor ∗
 
 LevelTel : Set
 LevelTel = List Level
@@ -55,8 +50,8 @@ syntax concat T₁ (λ xs → T₂) = xs ∈ T₁ ++ T₂
 
 flatten : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {T₂ : ⟦ T₁ ⟧ → Tel ls₂} →
           (xs : ⟦ T₁ ⟧) → ⟦ T₂ xs ⟧ → ⟦ xs ∈ T₁ ++ T₂ xs ⟧
-flatten {ls₁ = []}      ∗        ys = ys
-flatten {ls₁ = l ∷ ls₁} (x , xs) ys = x , flatten xs ys
+flatten {[]} ∗ ys = ys
+flatten {l ∷ ls₁} {T₁ = A , T₁} (x , xs) ys = x , flatten xs ys
 
 syntax flatten xs ys = xs +++ ys
 
@@ -92,4 +87,5 @@ _$ⁿ_ : ∀ {ls b} {T : Tel ls} {B : ⟦ T ⟧ → Set b} →
 _$ⁿ_ {ls = []}     f ∗        = f
 _$ⁿ_ {ls = l ∷ ls} f (x , xs) = f x $ⁿ xs
 
+test : ℕ
 test = _+_ $ⁿ (1 , 1 , ∗)

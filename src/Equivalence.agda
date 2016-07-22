@@ -2,6 +2,7 @@
 
 module Equivalence where
 
+open import Base
 open import Telescope
 open import Equality
 
