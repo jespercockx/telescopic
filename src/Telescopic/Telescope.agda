@@ -1,8 +1,8 @@
 {-# OPTIONS --rewriting --confluence-chec #-}
 
-module Telescope where
+module Telescopic.Telescope where
 
-open import Base
+open import Telescopic.Base
 
 
 LevelTel : Set

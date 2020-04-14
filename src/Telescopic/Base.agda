@@ -1,6 +1,6 @@
 {-# OPTIONS --rewriting --confluence-check #-}
 
-module Base where
+module Telescopic.Base where
 
 open import Agda.Primitive public
 open import Prelude.Semiring public

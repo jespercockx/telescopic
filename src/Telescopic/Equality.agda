@@ -1,9 +1,9 @@
 {-# OPTIONS --rewriting --confluence-check --show-implicit #-}
 
-module Equality where
+module Telescopic.Equality where
 
-open import Base
-open import Telescope
+open import Telescopic.Base
+open import Telescopic.Telescope
 
 J : ∀ {a b} {A : Set a} {x : A} (Φ : (x' : A) → x ≡ x' → Set b) →
            Φ x refl → {x' : A} → (e : x ≡ x') → Φ x' e

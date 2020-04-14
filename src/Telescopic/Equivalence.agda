@@ -1,10 +1,10 @@
 {-# OPTIONS --rewriting --confluence-chec #-}
 
-module Equivalence where
+module Telescopic.Equivalence where
 
-open import Base
-open import Telescope
-open import Equality
+open import Telescopic.Base
+open import Telescopic.Telescope
+open import Telescopic.Equality
 
 record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   field
