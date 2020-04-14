@@ -66,7 +66,7 @@ syntax flatten xs ys = xs +++ ys
 chunk : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {T₂ : ⟦ T₁ ⟧ → Tel ls₂} →
         ⟦ xs ∈ T₁ ++ T₂ xs ⟧ → Σ[ xs ∈ ⟦ T₁ ⟧ ] ⟦ T₂ xs ⟧
 chunk {ls₁ = []}      {ls₂} {∗}      {T₂} ys       = ∗ , ys
-chunk {ls₁ = l ∷ ls₁} {ls₂} {A , T₁} {T₂} (x , xs) = (x , (proj₁ rec)) , (proj₂ rec)
+chunk {ls₁ = l ∷ ls₁} {ls₂} {A , T₁} {T₂} (x , xs) = (x , (fst rec)) , (snd rec)
   where
     rec : ⟦ xs ∈ ⟦ T₁ x ⟧ , T₂ (x , xs) ⟧
     rec = chunk xs

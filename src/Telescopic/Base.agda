@@ -3,6 +3,7 @@
 module Telescopic.Base where
 
 open import Agda.Primitive public
+open import Agda.Builtin.Sigma public
 open import Prelude.Semiring public
 open import Prelude.Function public
 open import Prelude.Nat renaming ( Nat to ℕ ) public
@@ -14,17 +15,9 @@ open import Container.List using ( All; []; _∷_ ) public
 record · {a} : Set a where
   instance constructor ∗
 
-infixr 4 _,_
-infix 2 Σ-syntax
-
-record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  constructor _,_
-  field
-    proj₁ : A
-    proj₂ : B proj₁
-
 open Σ public
 
+infix 2 Σ-syntax
 Σ-syntax : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
 Σ-syntax = Σ
 
