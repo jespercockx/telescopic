@@ -11,7 +11,7 @@ J Φ φ refl = φ
 
 _≡ⁿ_ : ∀ {ls} {T : Tel ls} → ⟦ T ⟧ → ⟦ T ⟧ → Tel ls
 _≡ⁿ_ {[]}     ∗        ∗        = ∗
-_≡ⁿ_ {l ∷ ls} (x , xs) (y , ys) = e ∈ x ≡ y , (transport _ e xs) ≡ⁿ ys
+_≡ⁿ_ {l ∷ ls} (x , xs) (y , ys) = e ∶ x ≡ y , (transport _ e xs) ≡ⁿ ys
 
 reflⁿ : ∀ {ls} {T : Tel ls} {ts : ⟦ T ⟧} → ⟦ ts ≡ⁿ ts ⟧
 reflⁿ {ls = []}     = ∗
