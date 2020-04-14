@@ -1,96 +1,50 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --rewriting --confluence-check --show-implicit #-}
 
 module Equality where
 
 open import Base
 open import Telescope
 
-open import Prelude.Equality using () renaming
-  (_≡_ to _≡₁_;
-   refl to refl₁;
-   sym to sym₁;
-   trans to trans₁;
-   transport to subst₁;
-   cong to cong₁)
-  public
+J : ∀ {a b} {A : Set a} {x : A} (Φ : (x' : A) → x ≡ x' → Set b) →
+           Φ x refl → {x' : A} → (e : x ≡ x') → Φ x' e
+J Φ φ refl = φ
 
-J₁ : ∀ {a b} {A : Set a} {x : A} (Φ : (x' : A) → x ≡₁ x' → Set b) →
-           Φ x refl₁ → {x' : A} → (e : x ≡₁ x') → Φ x' e
-J₁ Φ φ refl₁ = φ
+_≡ⁿ_ : ∀ {ls} {T : Tel ls} → ⟦ T ⟧ → ⟦ T ⟧ → Tel ls
+_≡ⁿ_ {[]}     ∗        ∗        = ∗
+_≡ⁿ_ {l ∷ ls} (x , xs) (y , ys) = e ∈ x ≡ y , (transport _ e xs) ≡ⁿ ys
 
-[_]₁ : ∀ {a b} {A : Set a} {r s : A} → r ≡₁ s →
-         {Φ : A → Set b} → Φ r → Φ s
-[_]₁ {a} {b} {A} {r} {s} e {Φ} = subst₁ {a} {b} {A} Φ {r} {s} e
+reflⁿ : ∀ {ls} {T : Tel ls} {ts : ⟦ T ⟧} → ⟦ ts ≡ⁿ ts ⟧
+reflⁿ {ls = []}     = ∗
+reflⁿ {ls = l ∷ ls} = refl , reflⁿ
 
-_≡_ : ∀ {ls} {T : Tel ls} → ⟦ T ⟧ → ⟦ T ⟧ → Tel ls
-_≡_ {[]}     ∗        ∗        = ∗
-_≡_ {l ∷ ls} (x , xs) (y , ys) = e ∈ x ≡₁ y , ([ e ]₁ xs) ≡ ys
+Jⁿ : ∀ {ls b} {T : Tel ls} {rs : ⟦ T ⟧}
+    (Φ : (ss : ⟦ T ⟧) → ⟦ rs ≡ⁿ ss ⟧ → Set b) →
+    Φ rs reflⁿ → {ss : ⟦ T ⟧} → (es : ⟦ rs ≡ⁿ ss ⟧) → Φ ss es
+Jⁿ {ls = []} {T = ∗₁}    {∗}      Φ φ {∗}      ∗           = φ
+Jⁿ {l ∷ ls}  {T = A , T} {r , rs} Φ φ {_ , ss} (refl , es) = Jⁿ (λ ss es → Φ (r , ss) (refl , es)) φ es
 
-refl : ∀ {ls} {T : Tel ls} {ts : ⟦ T ⟧} → ⟦ ts ≡ ts ⟧
-refl {ls = []}     = ∗
-refl {ls = l ∷ ls} = refl₁ , refl
+transportⁿ : ∀ {ls b} {T : Tel ls} (Φ : ⟦ T ⟧ → Set b) →
+          {rs ss : ⟦ T ⟧} → ⟦ rs ≡ⁿ ss ⟧ → Φ rs → Φ ss
+transportⁿ Φ es φ = Jⁿ (λ x _ → Φ x) φ es
 
-J' : ∀ {ls b} {T : Tel ls} {rs : ⟦ T ⟧}
-    (Φ : (ss : ⟦ T ⟧) → ⟦ rs ≡ ss ⟧ → Set b) →
-    Φ rs refl → {ss : ⟦ T ⟧} → (es : ⟦ rs ≡ ss ⟧) → Φ ss es
-J' {ls = []}     {T = ∗₁}    {∗}      Φ φ {∗}      ∗        = φ
-J' {l ∷ ls} {T = A , T} {r , rs} Φ φ {.r , ss} (refl₁ , es) = J' (λ ss es → Φ (r , ss) (refl₁ , es)) φ es
+Jⁿ-refl : ∀ {ls b} {T : Tel ls} {rs : ⟦ T ⟧}
+         (Φ : (ss : ⟦ T ⟧) → ⟦ rs ≡ⁿ ss ⟧ → Set b) →
+         (φ : Φ rs reflⁿ) → Jⁿ Φ φ reflⁿ ≡ φ
+Jⁿ-refl {ls = []}     {rs = ∗}      Φ φ = refl
+Jⁿ-refl {ls = l ∷ ls} {rs = r , rs} Φ φ = Jⁿ-refl {rs = rs} _ φ
 
-subst' : ∀ {ls b} {T : Tel ls} (Φ : ⟦ T ⟧ → Set b) →
-          {rs ss : ⟦ T ⟧} → ⟦ rs ≡ ss ⟧ → Φ rs → Φ ss
-subst' Φ es φ = J' (λ x _ → Φ x) φ es
+{-# REWRITE Jⁿ-refl #-}
 
-[_]' : ∀ {ls b} {T : Tel ls} {rs ss : ⟦ T ⟧} → ⟦ rs ≡ ss ⟧ →
-      {Φ : ⟦ T ⟧ → Set b} → Φ rs → Φ ss
-[_]' {ls} {b} {T} {rs} {ss} e {Φ} = subst' {ls} {b} {T} Φ {rs} {ss} e
-
-J'-refl : ∀ {ls b} {T : Tel ls} {rs : ⟦ T ⟧}
-         (Φ : (ss : ⟦ T ⟧) → ⟦ rs ≡ ss ⟧ → Set b) →
-         (φ : Φ rs refl) → J' Φ φ refl ≡₁ φ
-J'-refl {ls = []}     {rs = ∗}      Φ φ = refl₁
-J'-refl {ls = l ∷ ls} {rs = r , rs} Φ φ = J'-refl {rs = rs} _ φ
-
-{-# BUILTIN REWRITE _≡₁_ #-}
-{-# REWRITE J'-refl #-}
-
-cong' : ∀ {ls b} {T : Tel ls} {Φ : ⟦ T ⟧ → Set b} →
+congⁿ : ∀ {ls b} {T : Tel ls} {Φ : ⟦ T ⟧ → Set b} →
        (f : (ts : ⟦ T ⟧) → Φ ts) → {rs ss : ⟦ T ⟧} →
-       (es : ⟦ rs ≡ ss ⟧) → [ es ]' (f rs) ≡₁ f ss
-cong' {[]} f ∗ = refl₁
-cong' {l ∷ ls} f (refl₁ , es) = cong' (λ ts → f (_ , ts)) es
+       (es : ⟦ rs ≡ⁿ ss ⟧) → transportⁿ _ es (f rs) ≡ f ss
+congⁿ {[]}     f ∗           = refl
+congⁿ {l ∷ ls} f (refl , es) = congⁿ (λ ts → f (_ , ts)) es
 
-cong'-refl : ∀ {ls b} {T : Tel ls} {Φ : ⟦ T ⟧ → Set b} →
+congⁿ-refl : ∀ {ls b} {T : Tel ls} {Φ : ⟦ T ⟧ → Set b} →
             (f : (ts : ⟦ T ⟧) → Φ ts) → (rs : ⟦ T ⟧) →
-            cong' f (refl {ts = rs}) ≡₁ refl₁
-cong'-refl {[]}     f ∗        = refl₁
-cong'-refl {l ∷ ls} f (r , rs) = cong'-refl (λ rs → f (r , rs)) rs
+            congⁿ f (reflⁿ {ts = rs}) ≡ refl
+congⁿ-refl {[]}     f ∗        = refl
+congⁿ-refl {l ∷ ls} f (r , rs) = congⁿ-refl (λ rs → f (r , rs)) rs
 
-{-# REWRITE cong'-refl #-}
-
-J : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {rs : ⟦ T₁ ⟧}
-    (T₂ : (ss : ⟦ T₁ ⟧) → ⟦ rs ≡ ss ⟧ → Tel ls₂) →
-    ⟦ T₂ rs refl ⟧ → {ss : ⟦ T₁ ⟧} → (es : ⟦ rs ≡ ss ⟧) → ⟦ T₂ ss es ⟧
-J T₂ = J' (λ ss es → ⟦ T₂ ss es ⟧)
-
-subst : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} (T₂ : ⟦ T₁ ⟧ → Tel ls₂) →
-           {rs ss : ⟦ T₁ ⟧} → ⟦ rs ≡ ss ⟧ → ⟦ T₂ rs ⟧ → ⟦ T₂ ss ⟧
-subst T₂ es φ = J (λ x _ → T₂ x) φ es
-
-[_] : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {rs ss : ⟦ T₁ ⟧} → ⟦ rs ≡ ss ⟧ →
-         {T₂ : ⟦ T₁ ⟧ → Tel ls₂} → ⟦ T₂ rs ⟧ → ⟦ T₂ ss ⟧
-[_]  e {Φ} = subst Φ e
-
-cong : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {T₂ : ⟦ T₁ ⟧ → Tel ls₂} →
-         (f : (ts : ⟦ T₁ ⟧) → ⟦ T₂ ts ⟧) → {rs ss : ⟦ T₁ ⟧} →
-         (es : ⟦ rs ≡ ss ⟧) → ⟦ [ es ] (f rs) ≡ f ss ⟧
-cong {[]}     f ∗            = refl
-cong {l ∷ ls} f (refl₁ , es) = cong (λ ts → f (_ , ts)) es
-
-cong-refl : ∀ {ls₁ ls₂} {T₁ : Tel ls₁} {T₂ : ⟦ T₁ ⟧ → Tel ls₂} →
-            (f : (ts : ⟦ T₁ ⟧) → ⟦ T₂ ts ⟧) → (rs : ⟦ T₁ ⟧) →
-            cong f (refl {ts = rs}) ≡₁ refl
-cong-refl {[]}     f ∗        = refl₁
-cong-refl {l ∷ ls} f (r , rs) = cong-refl (λ rs → f (r , rs)) rs
-
-
-{-# REWRITE cong-refl #-}
+{-# REWRITE congⁿ-refl #-}

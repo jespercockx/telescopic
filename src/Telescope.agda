@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --rewriting --confluence-chec #-}
 
 module Telescope where
 
@@ -12,6 +12,9 @@ telLevel : LevelTel → Level
 telLevel [] = lzero
 telLevel (a ∷ as) = a ⊔ (telLevel as)
 
+postulate telLevel++ : ∀ as bs → (telLevel (as ++ bs)) ≡ (telLevel as ⊔ telLevel bs)
+{-# REWRITE telLevel++ #-}
+
 Tel : ∀ as → Set (lsuc (telLevel as))
 Tel []       = ·
 Tel (a ∷ as) = Σ[ A ∈ Set a ] ((x : A) → Tel as)
@@ -20,7 +23,7 @@ Tel (a ∷ as) = Σ[ A ∈ Set a ] ((x : A) → Tel as)
 ⟦_⟧ {as = []}     ∗       = ·
 ⟦_⟧ {as = a ∷ as} (A , T) = Σ[ x ∈ A ] ⟦ T x ⟧
 
-infixr 4 extend-tel
+infixr 3 extend-tel
 
 extend-tel : ∀ {a as} (A : Set a) → (A → Tel as) → Tel (a ∷ as)
 extend-tel = _,_
@@ -30,9 +33,14 @@ syntax extend-tel A (λ x → B) = x ∈ A , B
 
 extend-tel′ : ∀ {ls l} (T : Tel ls) (B : ⟦ T ⟧ → Set l) → Tel (ls ++ (l ∷ []))
 extend-tel′ {ls = []} ∗ B = b ∈ B ∗ , ∗
-extend-tel′ {ls = x ∷ ls} (A , T) B = x ∈ A , extend-tel′ (T x) (λ xs → B (x , xs))
+extend-tel′ {ls = _ ∷ _} (A , T) B = x ∈ A , extend-tel′ (T x) (λ xs → B (x , xs))
 
 syntax extend-tel′ T (λ ts → B) = ts ∈ T ,′ B
+
+_,′_ : ∀ {ls l} {T : Tel ls} {B : ⟦ T ⟧ → Set l}
+     → (xs : ⟦ T ⟧) → B xs → ⟦ xs ∈ T ,′ B xs ⟧
+_,′_ {[]} ∗ y = y , ∗
+_,′_ {_ ∷ _} (x , xs) y = x , (xs ,′ y)
 
 Σ→Tel : ∀ {a b} {A : Set a} {B : A → Set b} →
         Σ[ x ∈ A ] (B x) → ⟦ x ∈ A , y ∈ B x , ∗ ⟧
@@ -63,17 +71,20 @@ chunk {ls₁ = l ∷ ls₁} {ls₂} {A , T₁} {T₂} (x , xs) = (x , (proj₁ r
     rec : ⟦ xs ∈ ⟦ T₁ x ⟧ , T₂ (x , xs) ⟧
     rec = chunk xs
 
-infixl 0 _$_
+infixl 0 _$¹_
 
-_$_ : ∀ {a ls b} {A : Set a} {T : A → Tel ls} {B : ⟦ a ∈ A , T a ⟧ → Set b}
+_$¹_ : ∀ {a ls b} {A : Set a} {T : A → Tel ls} {B : ⟦ a ∈ A , T a ⟧ → Set b}
       (f : (x : ⟦ a ∈ A , T a ⟧) → B x) → (a : A) → (t : ⟦ T a ⟧) → B (a , t)
-(f $ a) t = f (a , t)
+(f $¹ a) t = f (a , t)
 
 arrⁿ : ∀ {ls b} (T : Tel ls) (B : ⟦ T ⟧ → Set b) → Set (telLevel ls ⊔ b)
 arrⁿ {ls = []}     ∗       B = B ∗
 arrⁿ {ls = l ∷ ls} (A , T) B = (x : A) → arrⁿ (T x) (λ xs → B (x , xs))
 
 syntax arrⁿ T (λ xs → B) = xs ∈ T →ⁿ B
+
+_→ⁿ_ : ∀ {ls b} (T : Tel ls) (B : Set b) → Set (telLevel ls ⊔ b)
+T →ⁿ B = _ ∈ T →ⁿ B
 
 lamⁿ : ∀ {ls b} {T : Tel ls} {B : ⟦ T ⟧ → Set b} →
        ((xs : ⟦ T ⟧) → B xs) → xs ∈ T →ⁿ B xs
@@ -87,5 +98,6 @@ _$ⁿ_ : ∀ {ls b} {T : Tel ls} {B : ⟦ T ⟧ → Set b} →
 _$ⁿ_ {ls = []}     f ∗        = f
 _$ⁿ_ {ls = l ∷ ls} f (x , xs) = f x $ⁿ xs
 
-test : ℕ
-test = _+_ $ⁿ (1 , 1 , ∗)
+private
+  test : ℕ
+  test = _+_ $ⁿ (1 , 1 , ∗)
