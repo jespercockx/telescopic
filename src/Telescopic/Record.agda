@@ -114,8 +114,6 @@ macro
     tel ← fieldsToTelescope (length pars) fs []
     let pars' = dropHidden pars
     let abs-tel = addLams pars' tel
-    --`tel ← withNormalisation true (quoteTC abs-tel)
-    --typeError (termErr `tel ∷ [])
     unify goal abs-tel
 
 -- The telescope of the Σ-type
