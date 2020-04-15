@@ -101,20 +101,17 @@ fieldsToTelescope #pars (f ∷ fs) prev-fs = do
   f-type ← dropPis (suc #pars) =<< getType (unArg f)
   let f-abs-type = abstractFields #pars (map unArg prev-fs) 0 f-type
   fs-tel ← fieldsToTelescope #pars fs (f ∷ prev-fs)
-  let lam-fs-tel = lam (getVisibility f) (abs (unqualify (show (unArg f))) fs-tel)
+  let lam-fs-tel = lam visible (abs (unqualify (show (unArg f))) fs-tel)
   return (con (quote _,_) (vArg f-abs-type ∷ vArg lam-fs-tel ∷ []))
 
 macro
   recordToTelescope : Name → Term → TC ⊤
-  recordToTelescope r goal = do
+  recordToTelescope r goal = unify goal =<< do
     record-type _ fs ← getDefinition r
-      where
-        _ → typeError (strErr "Not a definition: " ∷ nameErr r ∷ [])
+      where _ → typeError (strErr "Not a record type: " ∷ nameErr r ∷ [])
     (pars , _) ← telView =<< getType r
     tel ← fieldsToTelescope (length pars) fs []
-    let pars' = dropHidden pars
-    let abs-tel = addLams pars' tel
-    unify goal abs-tel
+    return (addLams (dropHidden pars) tel)
 
 -- The telescope of the Σ-type
 Σ-tel : ∀ {a b} (A : Set a) (B : A → Set b) → Tel _
