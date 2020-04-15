@@ -124,8 +124,8 @@ macro
 
 test = ⟦ Σ-tel ℕ (Vec Bool) ⟧
 
-
-
+_ : test ≡ Σ ℕ (λ x → Σ (Vec Bool x) (λ x₁ → ·))
+_ = refl
 
 
 
