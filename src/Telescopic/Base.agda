@@ -9,8 +9,9 @@ open import Prelude.Function public
 open import Prelude.Nat renaming ( Nat to ℕ ) public
 open import Prelude.List using ( List; []; _∷_; _++_; map ) public
 open import Prelude.Sum renaming ( Either to _⊎_ ) using ( left; right ) public
+open import Prelude.Product using (_×_; fst; snd) public
 open import Prelude.Equality using (_≡_; refl; sym; trans; transport; cong; Eq; _==_) public
-open import Prelude.Decidable using (Dec; yes; no)
+open import Prelude.Decidable using (Dec; yes; no) public
 open import Container.List using ( All; []; _∷_; Any; zero; suc; _∈_ ) public
 
 record · {a} : Set a where
@@ -23,9 +24,6 @@ infix 2 Σ-syntax
 Σ-syntax = Σ
 
 syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
-
-_×_ : ∀ {a b} (A : Set a) (B : Set b) → Set (a ⊔ b)
-A × B = Σ[ x ∈ A ] B
 
 _×′_ : ∀ {a b} (A : Set a) (B : {{x : A}} → Set b) → Set (a ⊔ b)
 A ×′ B = Σ[ x ∈ A ] B {{x}}
